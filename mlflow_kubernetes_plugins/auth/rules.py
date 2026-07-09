@@ -20,6 +20,7 @@ from mlflow_kubernetes_plugins.auth.constants import (
     RESOURCE_GATEWAY_GUARDRAILS,
     RESOURCE_GATEWAY_MODEL_DEFINITIONS,
     RESOURCE_GATEWAY_SECRETS,
+    RESOURCE_MCP_SERVERS,
     RESOURCE_REGISTERED_MODELS,
 )
 from mlflow_kubernetes_plugins.auth.graphql import _build_graphql_operation_rules
@@ -57,6 +58,10 @@ def _datasets_rule(verb: str | None, **kwargs) -> AuthorizationRule:
 
 def _experiments_rule(verb: str | None, **kwargs) -> AuthorizationRule:
     return AuthorizationRule(verb, resource=RESOURCE_EXPERIMENTS, **kwargs)
+
+
+def _mcp_servers_rule(verb: str | None, **kwargs) -> AuthorizationRule:
+    return AuthorizationRule(verb, resource=RESOURCE_MCP_SERVERS, **kwargs)
 
 
 def _registered_models_rule(verb: str | None, **kwargs) -> AuthorizationRule:

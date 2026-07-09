@@ -25,16 +25,20 @@ from mlflow_kubernetes_plugins.auth.authorizer import (
 )
 from mlflow_kubernetes_plugins.auth.collection_filters import (
     COLLECTION_POLICY_RESPONSE_EXPERIMENTS,
+    COLLECTION_POLICY_RESPONSE_MCP_ACCESS_BINDINGS,
+    COLLECTION_POLICY_RESPONSE_MCP_SERVERS,
 )
 from mlflow_kubernetes_plugins.auth.compiler import _validate_fastapi_route_authorization
 from mlflow_kubernetes_plugins.auth.constants import (
     DEFAULT_REMOTE_GROUPS_HEADER,
     DEFAULT_REMOTE_GROUPS_SEPARATOR,
     DEFAULT_REMOTE_USER_HEADER,
+    RESOURCE_MCP_SERVERS,
 )
 from mlflow_kubernetes_plugins.auth.core import _AUTHORIZATION_HANDLED
 from mlflow_kubernetes_plugins.auth.middleware import KubernetesAuthMiddleware
 from mlflow_kubernetes_plugins.auth.resource_names import (
+    RESOURCE_NAME_PARSER_MCP_SERVER_NAME,
     RESOURCE_NAME_PARSER_TRACE_V3_EXPERIMENT_ID_TO_NAME,
 )
 from mlflow_kubernetes_plugins.auth.rules import (
@@ -83,6 +87,60 @@ def test_job_api_endpoints_in_auth_rules():
     for path, method, verb in cases:
         rule = PATH_AUTHORIZATION_RULES[(path, method)]
         assert (rule.verb, rule.resource) == (verb, "experiments")
+
+
+def test_mcp_registry_endpoints_in_auth_rules():
+    cases = [
+        ("/api/3.0/mlflow/mcp-servers", "POST", "create", (), None),
+        (
+            "/api/3.0/mlflow/mcp-servers",
+            "GET",
+            "list",
+            (),
+            COLLECTION_POLICY_RESPONSE_MCP_SERVERS,
+        ),
+        (
+            "/api/3.0/mlflow/mcp-servers/bindings",
+            "GET",
+            "list",
+            (),
+            COLLECTION_POLICY_RESPONSE_MCP_ACCESS_BINDINGS,
+        ),
+        (
+            "/api/3.0/mlflow/mcp-servers/<path:name>",
+            "PATCH",
+            "update",
+            (RESOURCE_NAME_PARSER_MCP_SERVER_NAME,),
+            None,
+        ),
+        (
+            "/api/3.0/mlflow/mcp-servers/<path:name>/versions",
+            "POST",
+            "create",
+            (RESOURCE_NAME_PARSER_MCP_SERVER_NAME,),
+            None,
+        ),
+        (
+            "/api/3.0/mlflow/mcp-servers/<path:name>/bindings/<binding_id>",
+            "DELETE",
+            "delete",
+            (RESOURCE_NAME_PARSER_MCP_SERVER_NAME,),
+            None,
+        ),
+        (
+            "/api/3.0/mlflow/mcp-servers/<path:name>/aliases/<path:alias>",
+            "GET",
+            "get",
+            (RESOURCE_NAME_PARSER_MCP_SERVER_NAME,),
+            None,
+        ),
+    ]
+
+    for path, method, expected_verb, expected_parsers, expected_policy in cases:
+        rule = PATH_AUTHORIZATION_RULES[(path, method)]
+        assert (rule.verb, rule.resource) == (expected_verb, RESOURCE_MCP_SERVERS)
+        assert rule.resource_name_parsers == expected_parsers
+        assert rule.collection_policy == expected_policy
 
 
 def test_fastapi_auth_leaves_non_json_bodies_unloaded(monkeypatch) -> None:
