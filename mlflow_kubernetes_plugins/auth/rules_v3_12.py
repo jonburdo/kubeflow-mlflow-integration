@@ -34,8 +34,6 @@ def apply_v3_12_deltas(
         tuple[str, str], AuthorizationRule | tuple[AuthorizationRule, ...]
     ],
 ) -> None:
-    del path_authorization_rules
-
     create_guardrail_rules = (
         _gateway_guardrails_rule("create"),
         _gateway_endpoints_use_rule(
@@ -76,4 +74,35 @@ def apply_v3_12_deltas(
             ListEndpointGuardrailConfigs: list_endpoint_guardrail_rules,
             UpdateEndpointGuardrailConfig: update_endpoint_guardrail_rules,
         }
+    )
+
+    for prefix in ("/api/3.0/mlflow", "/ajax-api/3.0/mlflow"):
+        path_authorization_rules.update(
+            {
+                (f"{prefix}/label-schemas/create", "POST"): _experiments_rule("update"),
+                (f"{prefix}/label-schemas/get", "GET"): _experiments_rule("get"),
+                (f"{prefix}/label-schemas/get-by-name", "GET"): _experiments_rule("get"),
+                (f"{prefix}/label-schemas/list", "GET"): _experiments_rule("get"),
+                (f"{prefix}/label-schemas/update", "PATCH"): _experiments_rule("update"),
+                (f"{prefix}/label-schemas/delete", "DELETE"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/create", "POST"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/get-or-create-user", "POST"): _experiments_rule(
+                    "update"
+                ),
+                (f"{prefix}/review-queues/get", "GET"): _experiments_rule("get"),
+                (f"{prefix}/review-queues/get-by-name", "GET"): _experiments_rule("get"),
+                (f"{prefix}/review-queues/list", "GET"): _experiments_rule("get"),
+                (f"{prefix}/review-queues/update", "POST"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/delete", "POST"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/items/add", "POST"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/items/remove", "POST"): _experiments_rule("update"),
+                (f"{prefix}/review-queues/items/list", "GET"): _experiments_rule("get"),
+                (f"{prefix}/review-queues/items/set-status", "POST"): _experiments_rule(
+                    "update"
+                ),
+            }
+        )
+
+    path_authorization_rules[("/ajax-api/3.0/mlflow/genai/evaluate/invoke", "POST")] = (
+        _experiments_rule("update")
     )

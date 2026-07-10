@@ -4704,6 +4704,18 @@ def test_server_info_endpoint_is_unprotected():
     assert rule.resource is None
 
 
+def test_current_user_endpoints_are_unprotected_and_workspace_free():
+    for route in [
+        ("/api/2.0/mlflow/users/current", "GET"),
+        ("/ajax-api/2.0/mlflow/users/current", "GET"),
+    ]:
+        rule = PATH_AUTHORIZATION_RULES[route]
+        assert isinstance(rule, AuthorizationRule), route
+        assert rule.verb is None, route
+        assert rule.resource is None, route
+        assert rule.requires_workspace is False, route
+
+
 def test_assessment_delete_path_rules():
     for prefix in ("/api/3.0", "/ajax-api/3.0"):
         path = f"{prefix}/mlflow/traces/<trace_id>/assessments/<assessment_id>"

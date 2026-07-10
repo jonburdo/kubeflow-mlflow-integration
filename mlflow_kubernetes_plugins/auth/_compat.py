@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 
 import mlflow
 from mlflow.protos import mlflow_artifacts_pb2 as artifacts_pb2
@@ -12,8 +13,19 @@ from packaging.version import Version
 MLFLOW_VERSION = Version(mlflow.__version__)
 HAS_MLFLOW_3_11_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.11.0.dev0")
 HAS_MLFLOW_3_12_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.12.0.dev0")
-HAS_MLFLOW_3_13_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.13.0.dev0")
-HAS_MLFLOW_3_14_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.14.0.dev0")
+
+
+def _module_exists(module_name: str) -> bool:
+    return importlib.util.find_spec(module_name) is not None
+
+
+HAS_MLFLOW_3_13_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.13.0.dev0") or hasattr(
+    service_pb2_mod, "ListScorers"
+)
+HAS_MLFLOW_3_14_AUTH_SURFACE = MLFLOW_VERSION >= Version("3.14.0.dev0") or (
+    _module_exists("mlflow.protos.label_schemas_pb2")
+    and _module_exists("mlflow.protos.review_queues_pb2")
+)
 
 if HAS_MLFLOW_3_11_AUTH_SURFACE:
     GetPresignedDownloadUrl = artifacts_pb2.GetPresignedDownloadUrl

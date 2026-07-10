@@ -775,6 +775,12 @@ BASE_PATH_AUTHORIZATION_RULES: dict[
     # Unprotected endpoints (no authorization required)
     ("/version", "GET"): AuthorizationRule(None),
     ("/server-info", "GET"): AuthorizationRule(None),
+    ("/api/2.0/mlflow/users/current", "GET"): AuthorizationRule(
+        None, requires_workspace=False
+    ),
+    ("/ajax-api/2.0/mlflow/users/current", "GET"): AuthorizationRule(
+        None, requires_workspace=False
+    ),
     ("/api/2.0/mlflow/model-versions/search", "GET"): _registered_models_rule(
         "list",
         collection_policy=COLLECTION_POLICY_RESPONSE_MODEL_VERSIONS,
